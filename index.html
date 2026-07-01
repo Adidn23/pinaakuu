@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Pinaa</title>
+<style>
+  :root{
+    --maroon-deep:#3a0f12;
+    --maroon:#5c1a1f;
+    --maroon-mid:#7a2329;
+    --rose:#c0444b;
+    --gold:#e8b75d;
+    --cream:#f6ece1;
+    --text-light:#f6ece1;
+    --vh:1vh;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{
+    margin:0; padding:0; width:100%;
+    height:calc(var(--vh, 1vh) * 100);
+    overflow:hidden;
+    font-family:'Georgia', 'Times New Roman', serif;
+    background:var(--maroon-deep);
+    color:var(--text-light);
+    -webkit-user-select:none; user-select:none;
+    overscroll-behavior:none;
+    touch-action:manipulation;
+  }
+  #app{
+    position:relative;
+    width:100%;
+    height:calc(var(--vh, 1vh) * 100);
+  }
+  .screen{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    flex-direction:column;
+    opacity:0; pointer-events:none;
+    transition:opacity .6s ease;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(232,183,93,0.10), transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(0,0,0,0.35), transparent 60%),
+      linear-gradient(160deg, var(--maroon-deep) 0%, var(--maroon) 55%, var(--maroon-mid) 100%);
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  .screen.active{ opacity:1; pointer-events:auto; }
+
+  .brand{
+    position:absolute; top:max(14px, env(safe-area-inset-top)); left:0; right:0;
+    text-align:center;
+    font-family:'Brush Script MT','Segoe Script', cursive;
+    font-size:clamp(20px,6vw,28px);
+    letter-spacing:1px;
+    color:var(--gold);
+    text-shadow:0 2px 8px rgba(0,0,0,0.4);
+    z-index:5;
+  }
+
+  /* ---------- LOGIN SCREEN ---------- */
+  .login-card{
+    width:90%;
+    max-width:340px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:clamp(10px,2.5vh,18px);
+    max-height:92vh;
+    justify-content:center;
+  }
+  .photobooth{
+    background:var(--cream);
+    padding:10px 10px 24px 10px;
+    border-radius:4px;
+    box-shadow:0 18px 40px rgba(0,0,0,0.45), 0 2px 0 rgba(255,255,255,0.4) inset;
+    transform:rotate(-3deg);
+    width:62%;
+    max-width:190px;
+  }
+  .photobooth-img{
+    width:100%;
+    aspect-ratio:3/4;
+    border-radius:2px;
+    object-fit:cover;
+    display:block;
+    background:
+      radial-gradient(circle at 50% 35%, #d8a070 18%, transparent 19%),
+      linear-gradient(180deg,#3a2a2a,#1c1414);
+  }
+  .photobooth-caption{
+    text-align:center;
+    margin-top:8px;
+    font-family:'Brush Script MT','Segoe Script', cursive;
+    font-size:16px;
+    color:var(--maroon-deep);
+  }
+  .login-label{
+    font-size:11px;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    color:var(--gold);
+    opacity:0.9;
+  }
+  .dots{
+    display:flex; gap:10px; height:16px; align-items:center;
+  }
+  .dot{
+    width:11px; height:11px; border-radius:50%;
+    border:1.5px solid var(--gold);
+    background:transparent;
+    transition:background .15s ease, transform .15s ease;
+  }
+  .dot.filled{ background:var(--gold); transform:scale(1.1); }
+  .dot.error{ border-color:#ff6b6b; background:#ff6b6b; }
+  .keypad{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:clamp(8px,3vw,14px);
+    margin-top:4px;
+    width:100%;
+    max-width:260px;
+  }
+  .key{
+    width:100%;
+    aspect-ratio:1/1;
+    max-width:64px;
+    max-height:64px;
+    margin:0 auto;
+    border-radius:50%;
+    border:1px solid rgba(232,183,93,0.35);
+    background:rgba(255,255,255,0.06);
+    color:var(--text-light);
+    font-size:clamp(16px,4.5vw,22px);
+    font-family:Georgia, serif;
+    display:flex; align-items:center; justify-content:center;
+    transition:background .12s ease, transform .08s ease;
+  }
+  .key:active{ background:rgba(232,183,93,0.35); transform:scale(0.94); }
+  .key.ghost{ background:transparent; border:none; }
+  .lock-icon{
+    font-size:22px;
+    color:var(--gold);
+  }
+  .shake{ animation:shakeKey .35s ease; }
+  @keyframes shakeKey{
+    0%,100%{ transform:translateX(0); }
+    20%{ transform:translateX(-8px); }
+    40%{ transform:translateX(8px); }
+    60%{ transform:translateX(-6px); }
+    80%{ transform:translateX(6px); }
+  }
+
+  /* ---------- POPUP BIRTHDAY ---------- */
+  .popup-card{
+    width:86%; max-width:320px;
+    background:linear-gradient(160deg,#fff8ee,var(--cream));
+    color:var(--maroon-deep);
+    border-radius:18px;
+    padding:clamp(22px,6vh,34px) 22px clamp(20px,5vh,28px);
+    text-align:center;
+    box-shadow:0 25px 60px rgba(0,0,0,0.5);
+    transform:scale(0.7);
+    opacity:0;
+    transition:transform .5s cubic-bezier(.2,1.4,.4,1), opacity .4s ease;
+  }
+  .popup-card.show{ transform:scale(1); opacity:1; }
+  .popup-eyebrow{
+    font-size:10px; letter-spacing:3px; text-transform:uppercase;
+    color:var(--rose); margin-bottom:8px;
+  }
+  .popup-title{
+    font-family:'Brush Script MT','Segoe Script', cursive;
+    font-size:clamp(28px,8vw,34px);
+    margin:0 0 6px;
+    color:var(--maroon);
+  }
+  .popup-date{
+    font-size:clamp(18px,5vw,22px);
+    letter-spacing:2px;
+    font-weight:bold;
+    margin-bottom:14px;
+  }
+  .popup-sub{
+    font-size:13px;
+    opacity:0.75;
+    line-height:1.5;
+  }
+
+  /* firecracker canvas overlay */
+  #fxCanvas{
+    position:absolute; inset:0;
+    pointer-events:none;
+  }
+
+  /* ---------- CAKE SCREEN ---------- */
+  .cake-wrap{
+    position:relative;
+    width:100%;
+    height:60%;
+    display:flex; align-items:flex-end; justify-content:center;
+  }
+  .cake-hint{
+    position:absolute; top:7%; left:0; right:0;
+    text-align:center;
+    font-size:13px;
+    letter-spacing:1px;
+    color:var(--gold);
+    opacity:0.85;
+    padding:0 10px;
+  }
+  #cakeStage{
+    position:relative;
+    width:50vw; height:50vw;
+    max-width:240px; max-height:240px;
+    min-width:160px; min-height:160px;
+    transform-origin:center bottom;
+    transition:transform .12s ease-out;
+  }
+  .progress-track{
+    position:absolute; bottom:5%; left:50%; transform:translateX(-50%);
+    width:74%; height:6px;
+    background:rgba(255,255,255,0.12);
+    border-radius:4px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%; width:0%;
+    background:linear-gradient(90deg, var(--gold), var(--rose));
+    transition:width .1s linear;
+  }
+  .cake-counter{
+    position:absolute; bottom:9%; left:0; right:0;
+    text-align:center;
+    font-size:11px;
+    color:var(--text-light);
+    opacity:0.6;
+    letter-spacing:1px;
+  }
+  .boom-flash{
+    position:fixed; inset:0;
+    background:#fff;
+    opacity:0;
+    pointer-events:none;
+    z-index:999;
+  }
+  .boom-flash.go{
+    animation:flashGo .6s ease forwards;
+  }
+  @keyframes flashGo{
+    0%{opacity:0;}
+    12%{opacity:1;}
+    100%{opacity:0;}
+  }
+
+  /* ---------- ENVELOPE / LETTER SCREEN ---------- */
+  .env-wrap{
+    width:86%; max-width:320px;
+    text-align:center;
+    position:relative;
+  }
+  .env-title{
+    font-family:'Brush Script MT','Segoe Script', cursive;
+    font-size:clamp(22px,6vw,26px);
+    color:var(--gold);
+    margin-bottom:clamp(16px,4vh,24px);
+    text-shadow:0 2px 8px rgba(0,0,0,0.4);
+  }
+  .envelope-stage{
+    position:relative;
+    width:100%;
+    max-width:220px;
+    height:190px;
+    margin:0 auto;
+    perspective:800px;
+  }
+  .envelope{
+    position:relative;
+    width:100%; height:150px;
+    margin-top:40px;
+    cursor:pointer;
+  }
+  .env-body{
+    position:absolute; inset:0;
+    background:linear-gradient(160deg,var(--rose),var(--maroon));
+    border-radius:4px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.35);
+    z-index:2;
+  }
+  .env-flap{
+    position:absolute; top:0; left:0; right:0; height:0;
+    border-left:110px solid transparent;
+    border-right:110px solid transparent;
+    border-top:78px solid var(--maroon-mid);
+    transform-origin:top;
+    transition:transform .42s cubic-bezier(.45,.05,.55,.95), opacity .25s ease .2s;
+    z-index:5;
+  }
+  .envelope.open .env-flap{
+    transform:rotateX(170deg);
+    opacity:0;
+  }
+  .env-seal{
+    position:absolute; top:42%; left:50%;
+    transform:translate(-50%,-50%);
+    width:36px; height:36px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, var(--gold), #b8862f);
+    box-shadow:0 4px 10px rgba(0,0,0,0.4);
+    z-index:6;
+    display:flex; align-items:center; justify-content:center;
+    font-size:15px;
+    color:var(--maroon-deep);
+    transition:opacity .2s ease;
+  }
+  .envelope.open .env-seal{ opacity:0; }
+
+  .folded-letter{
+    position:absolute;
+    left:50%;
+    bottom:10px;
+    width:72%;
+    height:30px;
+    background:#fffaf2;
+    border-radius:3px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.35);
+    transform:translate(-50%,0) rotate(0deg);
+    transform-origin:50% 100%;
+    z-index:1;
+    opacity:0;
+    overflow:hidden;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding-top:12px;
+    font-family:'Brush Script MT','Segoe Script', cursive;
+    font-size:13px;
+    color:var(--maroon-deep);
+    transition:
+      height .6s cubic-bezier(.22,.85,.32,1.15) .18s,
+      transform .6s cubic-bezier(.22,.85,.32,1.15) .18s,
+      opacity .2s ease .18s;
+  }
+  .envelope.open .folded-letter{
+    opacity:1;
+    height:132px;
+    transform:translate(-42%,-86px) rotate(-7deg);
+    z-index:10;
+  }
+
+  .tap-prompt{
+    margin-top:16px;
+    font-size:11px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:var(--gold);
+    opacity:0.75;
+    transition:opacity .3s ease;
+  }
+
+  /* full letter overlay */
+  .letter-overlay{
+    position:fixed; inset:0;
+    z-index:50;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(0,0,0,0);
+    pointer-events:none;
+    visibility:hidden;
+    opacity:0;
+    transition:background .5s ease, opacity .5s ease, visibility 0s linear .5s;
+    padding:env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
+  }
+  .letter-overlay.show{
+    background:rgba(0,0,0,0.6);
+    pointer-events:auto;
+    visibility:visible;
+    opacity:1;
+    transition:background .5s ease, opacity .5s ease, visibility 0s linear 0s;
+  }
+  .letter-book{
+    position:relative;
+    width:80%;
+    max-width:300px;
+    height:min(74vh,580px);
+    max-height:88%;
+    perspective:1600px;
+    margin:0 auto;
+  }
+  .letter-page{
+    position:absolute;
+    inset:0;
+    background:#fffaf2;
+    color:#3a2424;
+    border-radius:6px;
+    box-shadow:0 25px 60px rgba(0,0,0,0.5);
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    z-index:1;
+  }
+  .letter-text{
+    padding:30px 22px 34px;
+    font-size:13.5px;
+    line-height:1.8;
+    text-align:left;
+    box-sizing:border-box;
+    opacity:0;
+    transition:opacity .4s ease .5s;
+  }
+  .letter-overlay.show .letter-text{
+    opacity:1;
+  }
+  .letter-heart{
+    text-align:center;
+    margin-top:14px;
+    font-size:16px;
+  }
+  .letter-cover{
+    position:absolute;
+    inset:0;
+    border-radius:6px;
+    background:linear-gradient(150deg,var(--rose),var(--maroon) 60%,var(--maroon-deep));
+    box-shadow:0 18px 40px rgba(0,0,0,0.45);
+    display:flex; align-items:center; justify-content:center;
+    transform-origin:right center;
+    transform:rotateY(0deg);
+    transition:transform .65s cubic-bezier(.3,.6,.3,1);
+    z-index:2;
+    backface-visibility:hidden;
+  }
+  .letter-overlay.show .letter-cover{
+    transform:rotateY(-140deg);
+  }
+  .letter-cover-seal{
+    width:46px; height:46px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, var(--gold), #b8862f);
+    box-shadow:0 4px 10px rgba(0,0,0,0.4);
+    display:flex; align-items:center; justify-content:center;
+    font-size:18px;
+    color:var(--maroon-deep);
+  }
+  .letter-close{
+    position:absolute;
+    top:max(10px, env(safe-area-inset-top));
+    right:14px;
+    color:var(--cream);
+    font-size:12px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    opacity:0.85;
+    background:rgba(0,0,0,0.3);
+    padding:8px 12px;
+    border-radius:20px;
+    z-index:60;
+  }
+
+  /* ---------- FINAL SCREEN ---------- */
+  .final-bg{
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(180deg, rgba(20,8,8,0.35) 0%, rgba(20,8,8,0.55) 45%, rgba(20,8,8,0.75) 100%),
+      url('WhatsApp Image 2026-06-30 at 23.25.57.jpeg');
+    background-size:cover;
+    background-position:center;
+  }
+  .final-content{
+    position:relative;
+    z-index:2;
+    width:88%;
+    max-width:340px;
+    text-align:center;
+    color:var(--cream);
+  }
+  .final-date{
+    font-size:12px;
+    letter-spacing:4px;
+    opacity:0.85;
+    margin-bottom:10px;
+  }
+  .final-title{
+    font-family:'Brush Script MT','Segoe Script', cursive;
+    font-size:clamp(30px,9vw,40px);
+    margin:0 0 10px;
+    text-shadow:0 4px 14px rgba(0,0,0,0.5);
+  }
+  .final-sub{
+    font-size:13px;
+    line-height:1.7;
+    opacity:0.92;
+    text-shadow:0 2px 8px rgba(0,0,0,0.5);
+  }
+  .final-sub .script{
+    display:block;
+    font-family:'Brush Script MT','Segoe Script', cursive;
+    font-size:16px;
+    margin-top:6px;
+  }
+  /* REPLACED: tap hint instead of replay button */
+  .final-tap-hint{
+    margin-top:28px;
+    font-size:11px;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    color:var(--gold);
+    opacity:0.8;
+    animation: pulseFade 2s ease-in-out infinite;
+  }
+  @keyframes pulseFade{
+    0%,100%{ opacity:0.5; }
+    50%{ opacity:1; }
+  }
+
+  /* ---------- GALLERY SCREEN ---------- */
+  #screen-gallery{
+    background:
+      radial-gradient(circle at 20% 10%, rgba(232,183,93,0.12), transparent 45%),
+      linear-gradient(160deg, var(--maroon-deep) 0%, #2a0a0d 60%, #1a060a 100%);
+    align-items: stretch;
+    justify-content: stretch;
+  }
+
+  /* two-column full-screen layout */
+  .gallery-wrap{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:row;
+    align-items:stretch;
+    padding: max(46px, env(safe-area-inset-top)) 10px max(14px, env(safe-area-inset-bottom)) 10px;
+    gap:10px;
+  }
+
+  /* ---- LEFT: scrap paper ---- */
+  .gallery-left{
+    flex: 0 0 54%;
+    display:flex;
+    flex-direction:column;
+  }
+  .scrap-paper{
+    position:relative;
+    flex:1;
+    background:#fdf6eb;
+    color:#2d1a1a;
+    border-radius:4px;
+    box-shadow:
+      0 6px 16px rgba(0,0,0,0.35),
+      0 20px 40px rgba(0,0,0,0.4),
+      inset 0 0 0 1px rgba(0,0,0,0.04);
+    transform: rotate(-1.5deg);
+    /* torn top edge */
+    clip-path: polygon(
+      0% 3%, 2.5% 0%, 5% 2.5%, 7.5% 0%, 10% 3%, 12.5% 0.5%, 15% 2.5%,
+      17.5% 0%, 20% 3%, 22.5% 0.5%, 25% 2.5%, 27.5% 0%, 30% 3%,
+      32.5% 0.5%, 35% 2%, 37.5% 0%, 40% 3%, 42.5% 0.5%, 45% 2.5%,
+      47.5% 0%, 50% 3%, 52.5% 0.5%, 55% 2%, 57.5% 0%, 60% 3%,
+      62.5% 0.5%, 65% 2.5%, 67.5% 0%, 70% 3%, 72.5% 0.5%, 75% 2%,
+      77.5% 0%, 80% 3%, 82.5% 0.5%, 85% 2.5%, 87.5% 0%, 90% 3%,
+      92.5% 0.5%, 95% 2%, 97.5% 0%, 100% 3%,
+      100% 100%, 0% 100%
+    );
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+  }
+  .scrap-lines{
+    position:absolute; inset:0;
+    background:repeating-linear-gradient(
+      transparent, transparent 22px,
+      rgba(180,140,140,0.16) 22px, rgba(180,140,140,0.16) 23px
+    );
+    background-position:0 42px;
+    pointer-events:none;
+  }
+  .scrap-margin{
+    position:absolute;
+    left:30px; top:0; bottom:0; width:1px;
+    background:rgba(192,68,75,0.22);
+    pointer-events:none;
+  }
+  .scrap-inner{
+    position:relative;
+    z-index:1;
+    padding: 22px 12px 16px 20px;
+    display:flex;
+    flex-direction:column;
+    flex:1;
+    overflow:hidden;
+  }
+  .scrap-header{
+    font-family:'Brush Script MT','Segoe Script', cursive;
+    font-size:clamp(16px,4.8vw,22px);
+    color:var(--maroon);
+    text-align:center;
+    margin-bottom:6px;
+    letter-spacing:0.3px;
+    line-height:1.2;
+  }
+  .scrap-divider{
+    display:flex; align-items:center; gap:6px;
+    margin-bottom:8px; opacity:0.45;
+  }
+  .scrap-divider::before,.scrap-divider::after{
+    content:''; flex:1; height:1px; background:var(--maroon-mid);
+  }
+  .scrap-divider span{ font-size:10px; color:var(--rose); }
+  .scrap-body{
+    font-size:clamp(9px,2.4vw,11px);
+    line-height:1.8;
+    color:#3a2020;
+    font-style:italic;
+    flex:1;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    /* hide scrollbar visually but keep scroll */
+    scrollbar-width:none;
+  }
+  .scrap-body::-webkit-scrollbar{ display:none; }
+  .scrap-sign{
+    margin-top:8px;
+    text-align:right;
+    font-family:'Brush Script MT','Segoe Script', cursive;
+    font-size:clamp(12px,3.6vw,15px);
+    color:var(--rose);
+  }
+  .scrap-footer{
+    margin-top:10px;
+    font-size:9px;
+    letter-spacing:2.5px;
+    text-transform:uppercase;
+    color:rgba(90,30,30,0.45);
+    text-align:center;
+  }
+
+  /* ---- RIGHT: 3 vertical photo frames ---- */
+  .gallery-right{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:10px;
+    padding: 4px 0;
+  }
+  .frame{
+    flex:1;
+    background:var(--cream);
+    padding:5px 5px 18px;
+    border-radius:2px;
+    box-shadow:0 8px 18px rgba(0,0,0,0.5), 0 2px 0 rgba(255,255,255,0.2) inset;
+    display:flex;
+    flex-direction:column;
+    min-height:0;
+  }
+  .frame:nth-child(1){ transform:rotate(2.5deg); }
+  .frame:nth-child(2){ transform:rotate(-1.5deg); }
+  .frame:nth-child(3){ transform:rotate(2deg); }
+  .frame-img{
+    width:100%;
+    flex:1;
+    object-fit:cover;
+    display:block;
+    border-radius:1px;
+    background:linear-gradient(160deg, #4a2020, #2a1010);
+    min-height:0;
+  }
+  .frame-caption{
+    text-align:center;
+    margin-top:4px;
+    font-family:'Brush Script MT','Segoe Script', cursive;
+    font-size:10px;
+    color:var(--maroon-deep);
+    line-height:1;
+  }
+
+  /* prompt kecil */
+  .letter-next-hint{
+    position:fixed;
+    bottom:max(22px, env(safe-area-inset-bottom));
+    left:0; right:0;
+    text-align:center;
+    font-size:11px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:var(--gold);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .4s ease;
+    z-index:40;
+  }
+  .letter-next-hint.show{ opacity:0.85; }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <div class="brand">Pinaa</div>
+
+  <!-- SCREEN 1: LOGIN -->
+  <section class="screen active" id="screen-login">
+    <div class="login-card">
+      <div class="photobooth">
+        <img class="photobooth-img" id="photoboothImg" src="" alt="">
+        <div class="photobooth-caption">Happy Birthday!</div>
+      </div>
+      <div class="lock-icon">🔒</div>
+      <div class="login-label">Masukkan Kode</div>
+      <div class="dots" id="dots">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <div class="dot"></div><div class="dot"></div>
+      </div>
+      <div class="keypad" id="keypad">
+        <button class="key" data-k="1">1</button>
+        <button class="key" data-k="2">2</button>
+        <button class="key" data-k="3">3</button>
+        <button class="key" data-k="4">4</button>
+        <button class="key" data-k="5">5</button>
+        <button class="key" data-k="6">6</button>
+        <button class="key" data-k="7">7</button>
+        <button class="key" data-k="8">8</button>
+        <button class="key" data-k="9">9</button>
+        <button class="key ghost"></button>
+        <button class="key" data-k="0">0</button>
+        <button class="key" data-k="del">⌫</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCREEN 2: POPUP ULTAH + PETASAN -->
+  <section class="screen" id="screen-popup">
+    <canvas id="fxCanvas"></canvas>
+    <div class="popup-card" id="popupCard">
+      <div class="popup-eyebrow">Selamat Ulang Tahun</div>
+      <div class="popup-title">Pinaa</div>
+      <div class="popup-date">1 Juli 2009</div>
+      <div class="popup-sub">Hari ini hari spesialmu.<br>Tunggu sebentar ya...</div>
+    </div>
+  </section>
+
+  <!-- SCREEN 3: CAKE -->
+  <section class="screen" id="screen-cake">
+    <div class="cake-hint">Tap layar terus menerus, kalau berhenti kuenya mengecil lagi!</div>
+    <div class="cake-wrap">
+      <div id="cakeStage">
+        <svg viewBox="0 0 240 240" width="100%" height="100%">
+          <ellipse cx="120" cy="215" rx="95" ry="12" fill="#2a0c0e" opacity="0.5"/>
+          <rect x="45" y="150" width="150" height="55" rx="8" fill="#7a2329"/>
+          <rect x="45" y="150" width="150" height="14" rx="6" fill="#9c3038"/>
+          <rect x="60" y="110" width="120" height="48" rx="8" fill="#c0444b"/>
+          <rect x="60" y="110" width="120" height="12" rx="6" fill="#d8666c"/>
+          <rect x="78" y="78" width="84" height="40" rx="8" fill="#e8b75d"/>
+          <rect x="78" y="78" width="84" height="10" rx="5" fill="#f3d18f"/>
+          <g id="candles">
+            <rect x="95" y="55" width="6" height="24" rx="2" fill="#fff8ee"/>
+            <rect x="117" y="50" width="6" height="29" rx="2" fill="#fff8ee"/>
+            <rect x="139" y="55" width="6" height="24" rx="2" fill="#fff8ee"/>
+            <circle cx="98" cy="52" r="6" fill="#ffb347" opacity="0.95"/>
+            <circle cx="120" cy="47" r="7" fill="#ffb347" opacity="0.95"/>
+            <circle cx="142" cy="52" r="6" fill="#ffb347" opacity="0.95"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="cake-counter" id="cakeCounter">tap untuk membesarkan kue</div>
+  </section>
+  <div class="boom-flash" id="boomFlash"></div>
+
+  <!-- SCREEN 4: SURAT -->
+  <section class="screen" id="screen-letter">
+    <div class="env-wrap">
+      <div class="env-title">Sebuah Surat Untukmu</div>
+      <div class="envelope-stage">
+        <div class="envelope" id="envelope">
+          <div class="folded-letter" id="foldedLetter">Untuk Pinaa</div>
+          <div class="env-flap"></div>
+          <div class="env-body"></div>
+          <div class="env-seal">✦</div>
+        </div>
+      </div>
+      <div class="tap-prompt" id="tapPrompt">Ketuk amplop untuk membuka</div>
+    </div>
+  </section>
+
+  <!-- SCREEN 5: FINAL GREETING -->
+  <section class="screen" id="screen-final">
+    <div class="final-bg"></div>
+    <div class="final-content">
+      <div class="final-date">01 · 07 · 2026</div>
+      <div class="final-title">Happy Birthday Baby!</div>
+      <div class="final-sub">
+        I hope this little gift will make you happy ✨
+        <span class="script">This gift is like our love — thoughtful, unique, and meant just for you 🤍</span>
+      </div>
+      <!-- REPLACED: tap hint instead of replay button -->
+      <div class="final-tap-hint">✦ &nbsp; Tap layar untuk selanjutnya &nbsp; ✦</div>
+    </div>
+  </section>
+
+  <!-- SCREEN 6: GALLERY — scrap paper kiri + 3 foto vertikal kanan -->
+  <section class="screen" id="screen-gallery">
+    <div class="gallery-wrap">
+
+      <!-- LEFT: scrap paper letter -->
+      <div class="gallery-left">
+        <div class="scrap-paper">
+          <div class="scrap-lines"></div>
+          <div class="scrap-margin"></div>
+          <div class="scrap-inner">
+            <div class="scrap-header">Happy Birthday,<br>Pinaa 🎉</div>
+            <div class="scrap-divider"><span>♥</span></div>
+            <div class="scrap-body">
+              Meski kita hanya kenal lewat layar, rasa sayang aku ke kamu nyata banget, Pinaa. Kamu salah satu alasan kenapa hari-hariku terasa lebih hangat dan berarti. 🤍<br><br>
+              Aku bersyukur banget jalan hidup bisa mempertemukan kita, meskipun hanya online — karena dari sana aku kenal seseorang yang baik, yang tulus, yang selalu bikin aku senyum.<br><br>
+              Semoga di hari ulang tahunmu ini kamu ngerasa betapa berharganya dirimu. Semua impianmu layak untuk jadi nyata. 💕
+            </div>
+            <div class="scrap-sign">— dengan cinta, selalu 🤍</div>
+            <div class="scrap-footer">01 · 07 · 2026</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: 3 photo frames stacked vertically -->
+      <div class="gallery-right">
+        <!-- Frame 1 – ganti src dengan URL foto kamu -->
+        <div class="frame">
+          <img class="frame-img" id="frame1" src="" alt="foto 1">
+          <div class="frame-caption">kita 💛</div>
+        </div>
+        <!-- Frame 2 -->
+        <div class="frame">
+          <img class="frame-img" id="frame2" src="" alt="foto 2">
+          <div class="frame-caption">always 🤍</div>
+        </div>
+        <!-- Frame 3 -->
+        <div class="frame">
+          <img class="frame-img" id="frame3" src="" alt="foto 3">
+          <div class="frame-caption">forever ♥</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="letter-next-hint" id="letterNextHint">Ketuk layar untuk lanjut</div>
+
+  <!-- LETTER OVERLAY -->
+  <div class="letter-overlay" id="letterOverlay">
+    <div class="letter-close" id="letterClose">Tutup ✕</div>
+    <div class="letter-book">
+      <div class="letter-page">
+        <div class="letter-text">
+          Untuk Pinaa yang aku sayangi,<br><br>
+
+          Selamat ulang tahun, sayang. Hari ini, 1 Juli, adalah hari yang aku tandai jauh-jauh hari — bukan sekadar tanggal di kalender, tapi hari lahirnya orang yang pelan-pelan jadi bagian penting dari hidupku. 🎉❤️<br><br>
+
+          Aku bersyukur banget bisa kenal kamu, Pinaa. Mungkin kita belum pernah duduk bareng di tempat yang sama, belum pernah ketemu langsung — tapi jujur, itu nggak ngurangin sedikitpun rasa sayang aku. Justru aku kagum, betapa dua orang bisa saling kenal, saling peduli, dan saling sayang hanya lewat layar. Dan aku bersyukur banget kamu ada di sisi itu layar itu. 🤍<br><br>
+
+          Makasih ya, sudah mau kenal aku. Makasih sudah mau cerita hari-harimu, baik yang senang maupun yang berat. Makasih sudah bikin hari-hari aku jadi lebih berwarna, lebih hangat, lebih berarti. Setiap kali kamu kirim pesan, ada rasa bahagia kecil yang nggak bisa aku sembunyiin.<br><br>
+
+          Kamu itu orang yang baik banget, Pinaa — mungkin kamu sendiri belum sadar seberapa berharganya kamu. Aku berharap di umur barumu ini, kamu bisa makin percaya sama diri sendiri, makin berani ngejar impian, dan selalu dikelilingi orang-orang yang mencintaimu dengan tulus.<br><br>
+
+          Semoga kuliahmu lancar, semua yang kamu khawatirkan bisa perlahan terurai, dan semoga kebahagiaan datang terus-terusan ke hidupmu — bukan cuma hari ini, tapi setiap hari setelahnya juga.<br><br>
+
+          Aku sayang kamu, Pinaa. Beneran. Dan aku bersyukur banget jalan hidupku bisa nyasar ke arah yang ada kamu di sana. 💕
+
+          <div class="letter-heart">— Dengan segenap sayang, selalu —</div>
+        </div>
+      </div>
+      <div class="letter-cover">
+        <div class="letter-cover-seal">✦</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  function setVH(){
+    document.documentElement.style.setProperty('--vh', (window.innerHeight*0.01)+'px');
+  }
+  setVH();
+  window.addEventListener('resize', setVH);
+  window.addEventListener('orientationchange', setVH);
+
+  const PASSCODE = "10709";
+  let entered = "";
+
+  const dotsEl = document.getElementById('dots');
+  const dots = () => Array.from(dotsEl.children);
+
+  function renderDots(state){
+    dots().forEach((d,i)=>{
+      d.classList.remove('filled','error');
+      if(state==='error'){ d.classList.add('error'); }
+      else if(i < entered.length){ d.classList.add('filled'); }
+    });
+  }
+
+  function goTo(id){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  document.getElementById('keypad').addEventListener('click', (e)=>{
+    const btn = e.target.closest('.key');
+    if(!btn || btn.classList.contains('ghost')) return;
+    const k = btn.dataset.k;
+    if(k === 'del'){
+      entered = entered.slice(0,-1);
+      renderDots();
+      return;
+    }
+    if(entered.length >= 5) return;
+    entered += k;
+    renderDots();
+
+    if(entered.length === 5){
+      setTimeout(()=>{
+        if(entered === PASSCODE){
+          enterPopupScreen();
+        }else{
+          renderDots('error');
+          document.getElementById('keypad').classList.add('shake');
+          setTimeout(()=>{
+            document.getElementById('keypad').classList.remove('shake');
+            entered = "";
+            renderDots();
+          }, 450);
+        }
+      }, 150);
+    }
+  });
+
+  /* ---------- SCREEN 2: popup + firecrackers ---------- */
+  function enterPopupScreen(){
+    goTo('screen-popup');
+    setTimeout(()=>{ document.getElementById('popupCard').classList.add('show'); }, 150);
+    startFirecrackers(5000);
+    setTimeout(()=>{ goTo('screen-cake'); }, 5600);
+  }
+
+  const canvas = document.getElementById('fxCanvas');
+  const ctx = canvas.getContext('2d');
+  function resizeCanvas(){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  let particles = [];
+  let fxRunning = false;
+
+  function spawnBurst(x,y){
+    const colors = ['#e8b75d','#c0444b','#f6ece1','#ff8b6b','#ffd27a'];
+    const count = 28;
+    for(let i=0;i<count;i++){
+      const angle = (Math.PI*2*i)/count + Math.random()*0.3;
+      const speed = 2 + Math.random()*3.5;
+      particles.push({
+        x,y,
+        vx: Math.cos(angle)*speed,
+        vy: Math.sin(angle)*speed,
+        life: 1,
+        color: colors[Math.floor(Math.random()*colors.length)],
+        size: 2 + Math.random()*2
+      });
+    }
+  }
+
+  function fxLoop(){
+    if(!fxRunning) return;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p=>{
+      p.x += p.vx; p.y += p.vy; p.vy += 0.05; p.life -= 0.018;
+    });
+    particles = particles.filter(p=>p.life>0);
+    particles.forEach(p=>{
+      ctx.globalAlpha = Math.max(p.life,0);
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(fxLoop);
+  }
+
+  function startFirecrackers(duration){
+    fxRunning = true; resizeCanvas(); fxLoop();
+    const burstInterval = setInterval(()=>{
+      const x = Math.random()*canvas.width;
+      const y = canvas.height*0.15 + Math.random()*canvas.height*0.35;
+      spawnBurst(x,y);
+    }, 350);
+    setTimeout(()=>{
+      clearInterval(burstInterval);
+      setTimeout(()=>{ fxRunning=false; ctx.clearRect(0,0,canvas.width,canvas.height); particles=[]; }, 1200);
+    }, duration);
+  }
+
+  /* ---------- SCREEN 3: cake ---------- */
+  const cakeStage = document.getElementById('cakeStage');
+  const progressFill = document.getElementById('progressFill');
+  const cakeCounter = document.getElementById('cakeCounter');
+  const boomFlash = document.getElementById('boomFlash');
+  const cakeScreen = document.getElementById('screen-cake');
+
+  let heat = 0;
+  const EXPLODE_AT = 100;
+  const TAP_GAIN = 9;
+  const DECAY_RATE = 1.6;
+  const TICK_MS = 60;
+  let cakeExploded = false;
+  let decayTimer = null;
+
+  function applyCakeVisual(){
+    const progress = Math.min(heat/EXPLODE_AT, 1);
+    const scale = 1 + progress*1.7;
+    cakeStage.style.transform = `scale(${scale})`;
+    progressFill.style.width = (progress*100)+'%';
+    cakeCounter.textContent = heat<=0 ? 'tap untuk membesarkan kue' : Math.round(progress*100)+'%';
+  }
+
+  function tickDecay(){
+    if(cakeExploded) return;
+    if(heat>0){ heat=Math.max(0,heat-DECAY_RATE); applyCakeVisual(); }
+  }
+  decayTimer = setInterval(tickDecay, TICK_MS);
+
+  cakeScreen.addEventListener('click', ()=>{
+    if(cakeExploded) return;
+    if(!document.getElementById('screen-cake').classList.contains('active')) return;
+    heat = Math.min(EXPLODE_AT, heat+TAP_GAIN);
+    applyCakeVisual();
+    if(heat>=EXPLODE_AT) explodeCake();
+  });
+
+  function explodeCake(){
+    cakeExploded = true; clearInterval(decayTimer);
+    boomFlash.classList.add('go');
+    cakeStage.style.transition = 'transform .15s ease, opacity .15s ease';
+    cakeStage.style.transform = `scale(${1+1.7})`;
+    setTimeout(()=>{ cakeStage.style.opacity='0'; }, 80);
+    setTimeout(()=>{ goTo('screen-letter'); boomFlash.classList.remove('go'); }, 900);
+  }
+
+  /* ---------- SCREEN 4: envelope ---------- */
+  const envelope = document.getElementById('envelope');
+  const tapPrompt = document.getElementById('tapPrompt');
+  const letterOverlay = document.getElementById('letterOverlay');
+  const letterClose = document.getElementById('letterClose');
+  let envOpened = false;
+
+  envelope.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    if(envOpened) return;
+    envOpened = true;
+    envelope.classList.add('open');
+    tapPrompt.style.opacity = '0';
+    setTimeout(()=>{ letterOverlay.classList.add('show'); }, 900);
+  });
+
+  /* ---------- SCREEN 5 → SCREEN 6 ---------- */
+  const letterNextHint = document.getElementById('letterNextHint');
+  let readyForNext = false;
+
+  letterClose.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    letterOverlay.classList.remove('show');
+    // after closing letter, go to final greeting
+    setTimeout(()=>{ goTo('screen-final'); }, 600);
+  });
+
+  // tap anywhere on screen-final to go to gallery
+  document.getElementById('screen-final').addEventListener('click', ()=>{
+    goTo('screen-gallery');
+    generateFramePlaceholders();
+  });
+
+  /* ---------- SCREEN 6: gallery photo placeholders ---------- */
+  // Generates a soft placeholder canvas for each empty frame
+  // Replace the src of #frame1 / #frame2 / #frame3 with your actual photo URLs
+  function generateFramePlaceholders(){
+    ['frame1','frame2','frame3'].forEach((id, idx)=>{
+      const el = document.getElementById(id);
+      if(el && !el.src || el.src === window.location.href){
+        const c = document.createElement('canvas');
+        c.width=150; c.height=200;
+        const cx = c.getContext('2d');
+        const hues = [340,20,0];
+        const grad = cx.createLinearGradient(0,0,0,200);
+        grad.addColorStop(0,`hsl(${hues[idx]},45%,22%)`);
+        grad.addColorStop(1,`hsl(${hues[idx]},40%,12%)`);
+        cx.fillStyle = grad;
+        cx.fillRect(0,0,150,200);
+        // heart placeholder
+        cx.fillStyle = `hsla(${hues[idx]},60%,65%,0.4)`;
+        cx.font = '40px serif';
+        cx.textAlign = 'center';
+        cx.textBaseline = 'middle';
+        cx.fillText('♥', 75, 100);
+        el.src = c.toDataURL();
+      }
+    });
+  }
+
+  /* ---------- photobooth placeholder ---------- */
+  (function setPhotoboothImage(){
+    const c = document.createElement('canvas');
+    c.width=300; c.height=400;
+    const cx = c.getContext('2d');
+    const grad = cx.createLinearGradient(0,0,0,400);
+    grad.addColorStop(0,'#2a1818');
+    grad.addColorStop(1,'#120a0a');
+    cx.fillStyle=grad; cx.fillRect(0,0,300,400);
+    cx.fillStyle='rgba(232,183,93,0.5)';
+    cx.beginPath(); cx.arc(150,160,70,0,Math.PI*2); cx.fill();
+    cx.fillStyle='rgba(232,183,93,0.35)';
+    cx.beginPath(); cx.ellipse(150,330,110,90,0,Math.PI,0,false); cx.fill();
+    document.getElementById('photoboothImg').src=c.toDataURL();
+  })();
+
+})();
+</script>
+
+</body>
+</html>
