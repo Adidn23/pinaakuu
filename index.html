@@ -510,26 +510,29 @@
   /* ---------- GALLERY SCREEN ---------- */
   #screen-gallery{
     background:
-      radial-gradient(circle at 20% 10%, rgba(232,183,93,0.12), transparent 45%),
+      radial-gradient(circle at 25% 15%, rgba(232,183,93,0.10), transparent 50%),
+      radial-gradient(circle at 75% 85%, rgba(0,0,0,0.3), transparent 55%),
       linear-gradient(160deg, var(--maroon-deep) 0%, #2a0a0d 60%, #1a060a 100%);
-    align-items: stretch;
-    justify-content: stretch;
+    align-items: center;
+    justify-content: center;
   }
 
-  /* two-column full-screen layout */
+  /* centered container — fixed height so it doesn't stretch full screen */
   .gallery-wrap{
-    position:absolute;
-    inset:0;
     display:flex;
     flex-direction:row;
-    align-items:stretch;
-    padding: max(46px, env(safe-area-inset-top)) 10px max(14px, env(safe-area-inset-bottom)) 10px;
-    gap:10px;
+    align-items:flex-start;
+    width: calc(100% - 28px);
+    max-width: 420px;
+    height: min(76vh, 560px);
+    gap: 12px;
+    margin-top: 10px; /* small offset so it feels centered under brand bar */
   }
 
   /* ---- LEFT: scrap paper ---- */
   .gallery-left{
-    flex: 0 0 54%;
+    flex: 0 0 52%;
+    height: 100%;
     display:flex;
     flex-direction:column;
   }
@@ -538,21 +541,21 @@
     flex:1;
     background:#fdf6eb;
     color:#2d1a1a;
-    border-radius:4px;
+    border-radius:2px 2px 4px 4px;
     box-shadow:
-      0 6px 16px rgba(0,0,0,0.35),
-      0 20px 40px rgba(0,0,0,0.4),
+      0 4px 8px rgba(0,0,0,0.25),
+      0 16px 36px rgba(0,0,0,0.45),
       inset 0 0 0 1px rgba(0,0,0,0.04);
-    transform: rotate(-1.5deg);
+    transform: rotate(-1deg);
     /* torn top edge */
     clip-path: polygon(
-      0% 3%, 2.5% 0%, 5% 2.5%, 7.5% 0%, 10% 3%, 12.5% 0.5%, 15% 2.5%,
-      17.5% 0%, 20% 3%, 22.5% 0.5%, 25% 2.5%, 27.5% 0%, 30% 3%,
-      32.5% 0.5%, 35% 2%, 37.5% 0%, 40% 3%, 42.5% 0.5%, 45% 2.5%,
-      47.5% 0%, 50% 3%, 52.5% 0.5%, 55% 2%, 57.5% 0%, 60% 3%,
-      62.5% 0.5%, 65% 2.5%, 67.5% 0%, 70% 3%, 72.5% 0.5%, 75% 2%,
-      77.5% 0%, 80% 3%, 82.5% 0.5%, 85% 2.5%, 87.5% 0%, 90% 3%,
-      92.5% 0.5%, 95% 2%, 97.5% 0%, 100% 3%,
+      0% 2.5%, 2.5% 0%, 5% 2%, 7.5% 0%, 10% 2.5%, 12.5% 0.5%,
+      15% 2%, 17.5% 0%, 20% 2.5%, 22.5% 0.5%, 25% 2%, 27.5% 0%,
+      30% 2.5%, 32.5% 0.5%, 35% 2%, 37.5% 0%, 40% 2.5%, 42.5% 0.5%,
+      45% 2%, 47.5% 0%, 50% 2.5%, 52.5% 0.5%, 55% 2%, 57.5% 0%,
+      60% 2.5%, 62.5% 0.5%, 65% 2%, 67.5% 0%, 70% 2.5%, 72.5% 0.5%,
+      75% 2%, 77.5% 0%, 80% 2.5%, 82.5% 0.5%, 85% 2%, 87.5% 0%,
+      90% 2.5%, 92.5% 0.5%, 95% 2%, 97.5% 0%, 100% 2.5%,
       100% 100%, 0% 100%
     );
     overflow:hidden;
@@ -562,22 +565,22 @@
   .scrap-lines{
     position:absolute; inset:0;
     background:repeating-linear-gradient(
-      transparent, transparent 22px,
-      rgba(180,140,140,0.16) 22px, rgba(180,140,140,0.16) 23px
+      transparent, transparent 20px,
+      rgba(180,140,140,0.14) 20px, rgba(180,140,140,0.14) 21px
     );
-    background-position:0 42px;
+    background-position:0 38px;
     pointer-events:none;
   }
   .scrap-margin{
     position:absolute;
-    left:30px; top:0; bottom:0; width:1px;
-    background:rgba(192,68,75,0.22);
+    left:28px; top:0; bottom:0; width:1px;
+    background:rgba(192,68,75,0.20);
     pointer-events:none;
   }
   .scrap-inner{
     position:relative;
     z-index:1;
-    padding: 22px 12px 16px 20px;
+    padding: 20px 11px 14px 18px;
     display:flex;
     flex-direction:column;
     flex:1;
@@ -585,71 +588,74 @@
   }
   .scrap-header{
     font-family:'Brush Script MT','Segoe Script', cursive;
-    font-size:clamp(16px,4.8vw,22px);
+    font-size:clamp(15px,4.2vw,19px);
     color:var(--maroon);
     text-align:center;
-    margin-bottom:6px;
+    margin-bottom:5px;
     letter-spacing:0.3px;
-    line-height:1.2;
+    line-height:1.25;
+    flex-shrink:0;
   }
   .scrap-divider{
-    display:flex; align-items:center; gap:6px;
-    margin-bottom:8px; opacity:0.45;
+    display:flex; align-items:center; gap:5px;
+    margin-bottom:7px; opacity:0.4;
+    flex-shrink:0;
   }
   .scrap-divider::before,.scrap-divider::after{
     content:''; flex:1; height:1px; background:var(--maroon-mid);
   }
-  .scrap-divider span{ font-size:10px; color:var(--rose); }
+  .scrap-divider span{ font-size:9px; color:var(--rose); }
   .scrap-body{
-    font-size:clamp(9px,2.4vw,11px);
-    line-height:1.8;
+    font-size:clamp(8.5px,2.2vw,10.5px);
+    line-height:1.75;
     color:#3a2020;
     font-style:italic;
     flex:1;
     overflow-y:auto;
     -webkit-overflow-scrolling:touch;
-    /* hide scrollbar visually but keep scroll */
     scrollbar-width:none;
   }
   .scrap-body::-webkit-scrollbar{ display:none; }
   .scrap-sign{
-    margin-top:8px;
+    margin-top:7px;
     text-align:right;
     font-family:'Brush Script MT','Segoe Script', cursive;
-    font-size:clamp(12px,3.6vw,15px);
+    font-size:clamp(11px,3.2vw,14px);
     color:var(--rose);
+    flex-shrink:0;
   }
   .scrap-footer{
-    margin-top:10px;
-    font-size:9px;
+    margin-top:6px;
+    font-size:8px;
     letter-spacing:2.5px;
     text-transform:uppercase;
-    color:rgba(90,30,30,0.45);
+    color:rgba(90,30,30,0.4);
     text-align:center;
+    flex-shrink:0;
   }
 
-  /* ---- RIGHT: 3 vertical photo frames ---- */
+  /* ---- RIGHT: 3 vertical photo frames, fixed height matching left ---- */
   .gallery-right{
     flex:1;
+    height:100%;
     display:flex;
     flex-direction:column;
-    justify-content:center;
+    justify-content:space-between;
     gap:10px;
-    padding: 4px 0;
   }
   .frame{
     flex:1;
     background:var(--cream);
-    padding:5px 5px 18px;
+    padding:5px 5px 16px;
     border-radius:2px;
-    box-shadow:0 8px 18px rgba(0,0,0,0.5), 0 2px 0 rgba(255,255,255,0.2) inset;
+    box-shadow:0 6px 16px rgba(0,0,0,0.5), 0 2px 0 rgba(255,255,255,0.2) inset;
     display:flex;
     flex-direction:column;
     min-height:0;
   }
-  .frame:nth-child(1){ transform:rotate(2.5deg); }
+  .frame:nth-child(1){ transform:rotate(2deg); }
   .frame:nth-child(2){ transform:rotate(-1.5deg); }
-  .frame:nth-child(3){ transform:rotate(2deg); }
+  .frame:nth-child(3){ transform:rotate(1.5deg); }
   .frame-img{
     width:100%;
     flex:1;
@@ -661,11 +667,25 @@
   }
   .frame-caption{
     text-align:center;
-    margin-top:4px;
+    margin-top:3px;
     font-family:'Brush Script MT','Segoe Script', cursive;
-    font-size:10px;
+    font-size:9.5px;
     color:var(--maroon-deep);
     line-height:1;
+    flex-shrink:0;
+  }
+
+  /* small gold date label below the whole card pair */
+  .gallery-date{
+    position:absolute;
+    bottom: max(18px, env(safe-area-inset-bottom));
+    left:0; right:0;
+    text-align:center;
+    font-size:9px;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    color:var(--gold);
+    opacity:0.5;
   }
 
   /* prompt kecil */
@@ -818,17 +838,14 @@
 
       <!-- RIGHT: 3 photo frames stacked vertically -->
       <div class="gallery-right">
-        <!-- Frame 1 – ganti src dengan URL foto kamu -->
         <div class="frame">
           <img class="frame-img" id="frame1" src="" alt="foto 1">
           <div class="frame-caption">kita 💛</div>
         </div>
-        <!-- Frame 2 -->
         <div class="frame">
           <img class="frame-img" id="frame2" src="" alt="foto 2">
           <div class="frame-caption">always 🤍</div>
         </div>
-        <!-- Frame 3 -->
         <div class="frame">
           <img class="frame-img" id="frame3" src="" alt="foto 3">
           <div class="frame-caption">forever ♥</div>
@@ -836,6 +853,7 @@
       </div>
 
     </div>
+    <div class="gallery-date">Pinaa &nbsp;✦&nbsp; 01 · 07 · 2026</div>
   </section>
 
   <div class="letter-next-hint" id="letterNextHint">Ketuk layar untuk lanjut</div>
